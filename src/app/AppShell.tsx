@@ -12,7 +12,7 @@ export default function AppShell({ children }: AppShellProps) {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <h1 className="app-title">Marine Task App v2</h1>
+        <h1 className="app-title">Yacht Maintenance App</h1>
       </header>
 
       <main className="app-content">

@@ -2,36 +2,41 @@ param (
     [string]$ArchiveBranch
 )
 
-Write-Host "=== Git Main Reset & Archive Script ===" -ForegroundColor Cyan
+Write-Host "=== Archive old main & promote current code to main ===" -ForegroundColor Cyan
 
-# STEP 0: Ensure we are in a git repo
-if (!(Test-Path ".git")) {
-    Write-Error "This is not a git repository. Aborting."
+# 0. Ensure this is a git repo
+if (-not (Test-Path ".git")) {
+    Write-Error "Not a git repository."
     exit 1
 }
 
-# STEP 1: Ensure working tree is clean
-$STATUS = git status --porcelain
-if ($STATUS) {
-    Write-Error "Working tree is NOT clean. Commit or stash changes first."
-    git status
+# 1. Abort any active rebase
+if ( (Test-Path ".git/rebase-apply") -or (Test-Path ".git/rebase-merge") ) {
+    Write-Host "Active rebase detected – aborting rebase" -ForegroundColor Yellow
+    git rebase --abort | Out-Null
+}
+
+# 2. Ensure we are on main
+$currentBranch = git branch --show-current
+if ($currentBranch -ne "main") {
+    Write-Error "You must be on the 'main' branch to run this script."
     exit 1
 }
 
-Write-Host "Working tree clean" -ForegroundColor Green
-
-# STEP 2: Ensure we are on main
-$CURRENT_BRANCH = git branch --show-current
-if ($CURRENT_BRANCH -ne "main") {
-    Write-Error "You must be on 'main' branch to run this script."
-    exit 1
+# 3. Auto-commit any local changes (this is the NEW code)
+$status = git status --porcelain
+if ($status) {
+    Write-Host "Uncommitted changes detected – auto committing" -ForegroundColor Yellow
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    git add .
+    git commit -m ("Auto checkpoint before archive (" + $timestamp + ")") | Out-Null
 }
 
-Write-Host "On main branch" -ForegroundColor Green
+Write-Host "Working tree clean and committed" -ForegroundColor Green
 
-# STEP 3: Ask for archive branch if not provided
+# 4. Ask for archive branch name if not provided
 if (-not $ArchiveBranch) {
-    $ArchiveBranch = Read-Host "Enter archive branch name (e.g. phase-1-foundation)"
+    $ArchiveBranch = Read-Host "Enter archive branch name (e.g. phase-3-foundation)"
 }
 
 if (-not $ArchiveBranch) {
@@ -39,28 +44,25 @@ if (-not $ArchiveBranch) {
     exit 1
 }
 
-Write-Host ("Archive branch set to: " + $ArchiveBranch) -ForegroundColor Green
+Write-Host ("Archive branch will be: " + $ArchiveBranch) -ForegroundColor Green
 
-# STEP 4: Rename local main -> archive branch
-Write-Host ("Archiving main to '" + $ArchiveBranch + "'")
-git branch -m main $ArchiveBranch
+# 5. Remember the OLD main commit (this is what we archive)
+$oldMainCommit = git rev-parse HEAD
 
-# STEP 5: Push archive branch to GitHub
-Write-Host "Pushing archive branch to origin"
-git push origin $ArchiveBranch
+# 6. Create archive branch from OLD main
+Write-Host ("Creating archive branch '" + $ArchiveBranch + "'")
+git branch $ArchiveBranch $oldMainCommit | Out-Null
+git push origin $ArchiveBranch | Out-Null
 
-# STEP 6: Create NEW main from current HEAD
-Write-Host "Creating new main branch"
-git checkout -b main
+# 7. Promote CURRENT code to main (this is the key step)
+Write-Host "Promoting current code to main"
+git push origin HEAD:main --force-with-lease | Out-Null
 
-# STEP 7: Push new main and set upstream
-Write-Host "Pushing new main to origin"
-git push -u origin main
-
-# STEP 8: Final verification
+# 8. Final state
 Write-Host ""
-Write-Host "=== Final State ===" -ForegroundColor Cyan
+Write-Host "=== Final branch state ===" -ForegroundColor Cyan
 git branch -a
+git log --oneline --decorate -5
 
 Write-Host ""
-Write-Host ("Main branch reset complete. Archive branch: " + $ArchiveBranch) -ForegroundColor Green
+Write-Host ("SUCCESS: Old main archived as '" + $ArchiveBranch + "', new code is now main") -ForegroundColor Green
