@@ -2,6 +2,10 @@ import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 import type { TreeNode } from "../components/TreeDisplay"
 
+/* ---------- Constants ---------- */
+
+const UNASSIGNED_TASKS_CATEGORY_ID = "__unassigned_tasks__"
+
 /* ---------- DB Row Types ---------- */
 
 type TaskCategoryRow = {
@@ -78,17 +82,26 @@ export function useTaskTree() {
         taskMap.set(t.id, t)
       })
 
-      /* ---------- 5. Determine used categories ---------- */
-
-      const usedCategoryIds = new Set<string>(
-        (links as TaskCategoryMapRow[]).map((l) => l.category_id)
-      )
-
-      // Include parent categories so the tree can nest correctly
       const categoryMap = new Map<string, TaskCategoryRow>()
       ;(categories as TaskCategoryRow[]).forEach((c) => {
         categoryMap.set(c.id, c)
       })
+
+      /* ---------- 5. Assigned vs unassigned tasks ---------- */
+
+      const assignedTaskIds = new Set(
+        (links as TaskCategoryMapRow[]).map((l) => l.task_id)
+      )
+
+      const unassignedTasks = (tasks as TaskRow[]).filter(
+        (t) => !assignedTaskIds.has(t.id)
+      )
+
+      /* ---------- 6. Determine relevant categories ---------- */
+
+      const usedCategoryIds = new Set<string>(
+        (links as TaskCategoryMapRow[]).map((l) => l.category_id)
+      )
 
       const allRelevantCategoryIds = new Set<string>(usedCategoryIds)
 
@@ -100,7 +113,7 @@ export function useTaskTree() {
         }
       })
 
-      /* ---------- 6. Category nodes ---------- */
+      /* ---------- 7. Category nodes ---------- */
 
       const categoryNodes: TreeNode[] =
         (categories as TaskCategoryRow[])
@@ -113,7 +126,7 @@ export function useTaskTree() {
             meta: c,
           }))
 
-      /* ---------- 7. Task nodes ---------- */
+      /* ---------- 8. Task nodes (assigned) ---------- */
 
       const taskNodes: TreeNode[] =
         (links as TaskCategoryMapRow[])
@@ -131,11 +144,35 @@ export function useTaskTree() {
           })
           .filter(Boolean) as TreeNode[]
 
-      /* ---------- 8. Combine & publish ---------- */
+      /* ---------- 9. Unassigned task nodes ---------- */
+
+      const unassignedTaskNodes: TreeNode[] =
+        unassignedTasks.map((task) => ({
+          id: task.id,
+          parentId: UNASSIGNED_TASKS_CATEGORY_ID,
+          label: task.name,
+          nodeType: "task",
+          meta: task,
+        }))
+
+      const unassignedCategoryNode: TreeNode | null =
+        unassignedTasks.length > 0
+          ? {
+              id: UNASSIGNED_TASKS_CATEGORY_ID,
+              parentId: null,
+              label: "Unassigned tasks",
+              nodeType: "category",
+              meta: { isVirtual: true },
+            }
+          : null
+
+      /* ---------- 10. Combine & publish ---------- */
 
       const allNodes: TreeNode[] = [
         ...categoryNodes,
+        ...(unassignedCategoryNode ? [unassignedCategoryNode] : []),
         ...taskNodes,
+        ...unassignedTaskNodes,
       ]
 
       setNodes(allNodes)

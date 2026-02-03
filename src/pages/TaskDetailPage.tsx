@@ -2,6 +2,8 @@ import { useNavigate, useParams } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 
+/* ---------- Types ---------- */
+
 type TaskDetail = {
   id: string
   name: string
@@ -9,6 +11,16 @@ type TaskDetail = {
   unit_name: string | null
   period_name: string | null
 }
+
+type TaskRow = {
+  id: string
+  name: string
+  description: string | null
+  units_of_measure: { name: string } | null
+  periods: { name: string } | null
+}
+
+/* ---------- Component ---------- */
 
 export default function TaskDetailPage() {
   const { taskId } = useParams<{ taskId: string }>()
@@ -30,14 +42,15 @@ export default function TaskDetailPage() {
       .eq("id", taskId)
       .single()
       .then(({ data }) => {
-        if (!data) return
+        const row = data as TaskRow | null
+        if (!row) return
 
         setTask({
-          id: data.id,
-          name: data.name,
-          description: data.description,
-          unit_name: data.units_of_measure?.name ?? null,
-          period_name: data.periods?.name ?? null,
+          id: row.id,
+          name: row.name,
+          description: row.description,
+          unit_name: row.units_of_measure?.name ?? null,
+          period_name: row.periods?.name ?? null,
         })
       })
   }, [taskId])
