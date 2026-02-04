@@ -160,7 +160,7 @@ export function useTaskTree() {
           ? {
               id: UNASSIGNED_TASKS_CATEGORY_ID,
               parentId: null,
-              label: "Unassigned tasks",
+              label: "UnCategorised Tasks",
               nodeType: "category",
               meta: { isVirtual: true },
             }

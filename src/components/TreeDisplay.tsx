@@ -80,7 +80,10 @@ export default function TreeDisplay({
           {/* ---------- Label ---------- */}
           <div
             className="tree-label"
-            onClick={() => onSelect?.(node)}
+            onClick={() => {
+              if (hasChildren) toggle(node.id)
+              onSelect?.(node)
+            }}
           >
             {renderIcon?.(node)}
             <span>{node.label}</span>

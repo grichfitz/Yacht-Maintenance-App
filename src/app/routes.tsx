@@ -4,15 +4,20 @@ import YachtsApp from "../app/YachtsApp";
 import YachtDetailPage from "../pages/YachtDetailPage";
 import TasksApp from "../app/TasksApp"
 import TaskDetailPage from "../pages/TaskDetailPage";
+import TaskCategoryAssignPage from "../pages/TaskCategoryAssignPage";
+import CategoryEditorPage from "../pages/CategoryEditorPage";
 
 export default function AppRoutes() {
   return (
     <Routes>
+      <Route path="/" element={<Desktop />} />
       <Route path="/desktop" element={<Desktop />} />
       <Route path="/apps/yachts" element={<YachtsApp />} />
       <Route path="/apps/yachts/:id" element={<YachtDetailPage />} />
       <Route path="/apps/tasks" element={<TasksApp />} />
       <Route path="/apps/tasks/:taskId" element={<TaskDetailPage />} />
+      <Route path="/apps/tasks/:taskId/categories" element={<TaskCategoryAssignPage />} />
+      <Route path="/categories/:categoryId" element={<CategoryEditorPage />} />
     </Routes>
   );
 }

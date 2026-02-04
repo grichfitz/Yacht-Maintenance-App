@@ -7,7 +7,9 @@ import "./styles/layout.css";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <div className="app-root">
+        <App />
+      </div>
     </BrowserRouter>
   </React.StrictMode>
 );

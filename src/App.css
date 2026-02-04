@@ -312,6 +312,7 @@ select:focus {
   gap: 6px;
   flex: 1;
   cursor: pointer;
+  user-select: none;
 }
 
 /* Actions */

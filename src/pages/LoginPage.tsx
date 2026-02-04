@@ -1,9 +1,12 @@
-import { useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +22,12 @@ export default function LoginPage() {
 
     if (error) {
       setError(error.message);
+      setLoading(false);
+      return;
     }
+
+    // ✅ Always go to Desktop after login
+    navigate("/desktop");
 
     setLoading(false);
   };
@@ -34,9 +42,9 @@ export default function LoginPage() {
             type="email"
             placeholder="Email"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             required
-            style={{ width: '100%', padding: 10 }}
+            style={{ width: "100%", padding: 10 }}
           />
         </div>
 
@@ -45,24 +53,22 @@ export default function LoginPage() {
             type="password"
             placeholder="Password"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             required
-            style={{ width: '100%', padding: 10 }}
+            style={{ width: "100%", padding: 10 }}
           />
         </div>
 
         {error && (
-          <div style={{ color: 'red', marginBottom: 12 }}>
-            {error}
-          </div>
+          <div style={{ color: "red", marginBottom: 12 }}>{error}</div>
         )}
 
         <button
           type="submit"
           disabled={loading}
-          style={{ width: '100%', padding: 12 }}
+          style={{ width: "100%", padding: 12 }}
         >
-          {loading ? 'Signing in…' : 'Sign In'}
+          {loading ? "Signing in…" : "Sign In"}
         </button>
       </form>
     </div>

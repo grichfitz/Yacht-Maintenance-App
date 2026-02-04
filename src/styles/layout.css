@@ -1,8 +1,9 @@
-.app-shell {
+.app {
   display: flex;
   flex-direction: column;
   height: 100vh;
 }
+
 
 .app-header,
 .app-footer {
@@ -21,6 +22,7 @@
   flex: 1;
   overflow-y: auto;
   background: #f4f6f8;
+  -webkit-overflow-scrolling: touch;
 }
 
 .desktop {
@@ -72,3 +74,5 @@
   border-radius: 8px;
   font-size: 14px;
 }
+
+
