@@ -129,41 +129,58 @@ export default function TaskCategoryAssignPage() {
       <TreeDisplay
         nodes={nodes}
         onSelect={(node) => toggle(node)}
-        renderActions={(node) => (
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <input
-              type="checkbox"
-              checked={checked.includes(node.id)}
-              ref={(el) => {
-                if (el) el.indeterminate = isPartiallyChecked(node.id);
-              }}
-              onChange={() => toggle(node)}
-              style={{ transform: "scale(1.4)" }}
-            />
+renderActions={(node) => (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 6,
+      minHeight: 28,
+    }}
+  >
+    <input
+      type="checkbox"
+      checked={checked.includes(node.id)}
+      ref={(el) => {
+        if (el) el.indeterminate = isPartiallyChecked(node.id);
+      }}
+      onChange={() => toggle(node)}
+      style={{
+        width: 18,
+        height: 18,
+        margin: 0,
+        appearance: "none",
+        WebkitAppearance: "none",
+        border: "1.5px solid #666",
+        borderRadius: 4,
+        display: "grid",
+        placeContent: "center",
+      }}
+    />
 
-            {node.id !== "__archive__" ? (
-              <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/categories/${node.id}`);
-                }}
-                style={{
-                  width: 32,
-                  height: 32,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: 6,
-                  touchAction: "manipulation",
-                }}
-              >
-                <Pencil size={18} />
-              </div>
-            ) : (
-              <div style={{ width: 32 }} />
-            )}
-          </div>
-        )}
+    {node.id !== "__archive__" ? (
+      <div
+        onClick={(e) => {
+          e.stopPropagation();
+          navigate(`/categories/${node.id}`);
+        }}
+        style={{
+          width: 22,
+          height: 22,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+        }}
+      >
+        <Pencil size={14} />
+      </div>
+    ) : (
+      <div style={{ width: 22 }} />
+    )}
+  </div>
+)}
+
       />
     </div>
   );
