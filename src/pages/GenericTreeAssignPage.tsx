@@ -6,7 +6,7 @@ import { supabase } from "../lib/supabase"
 
 type Props = {
   targetId: string
-  nodes: { id: string; parentId: string | null }[]
+  nodes: { id: string; parentId: string | null; label: string }[]
   mapTable: string
   mapTargetField: string
   mapNodeField: string
@@ -30,7 +30,7 @@ export default function GenericTreeAssignPage({
       .select(mapNodeField)
       .eq(mapTargetField, targetId)
       .then(({ data }) => {
-        setChecked(data?.map(r => r[mapNodeField]) ?? [])
+        setChecked((data as any[])?.map(r => r[mapNodeField]) ?? [])
       })
   }, [targetId])
 
@@ -77,8 +77,9 @@ export default function GenericTreeAssignPage({
         const descendants = getDescendants(node.id)
 
         const allChildrenChecked =
-          descendants.length &&
-          descendants.every(x => checked.includes(x))
+  descendants.length > 0 &&
+  descendants.every(x => checked.includes(x))
+
 
         const someChildrenChecked =
           descendants.some(x => checked.includes(x))

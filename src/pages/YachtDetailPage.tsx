@@ -2,13 +2,6 @@ import { useNavigate, useParams } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 
-type Yacht = {
-  id: string
-  name: string
-  make_model: string | null
-  location: string | null
-}
-
 export default function YachtDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
