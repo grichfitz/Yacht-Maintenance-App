@@ -32,7 +32,7 @@ export default function TaskCategoryAssignPage() {
       });
   }, [taskId]);
 
-  /* ---------- Build children map (visual only) ---------- */
+  /* ---------- Build children map (VISUAL ONLY for half-tick) ---------- */
 
   const childrenMap = useMemo(() => {
     const map: Record<string, string[]> = {};
@@ -49,7 +49,7 @@ export default function TaskCategoryAssignPage() {
     return kids.flatMap((k) => [k, ...getDescendants(k)]);
   };
 
-  // visual half tick only
+  // Visual half-tick only (no assignment logic)
   const isPartiallyChecked = (id: string) => {
     const all = getDescendants(id);
     return all.some((x) => checked.includes(x)) && !checked.includes(id);
@@ -130,7 +130,7 @@ export default function TaskCategoryAssignPage() {
         nodes={nodes}
         onSelect={(node) => toggle(node)}
         renderActions={(node) => (
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <input
               type="checkbox"
               checked={checked.includes(node.id)}
@@ -148,15 +148,19 @@ export default function TaskCategoryAssignPage() {
                   navigate(`/categories/${node.id}`);
                 }}
                 style={{
+                  width: 32,
+                  height: 32,
                   display: "flex",
                   alignItems: "center",
-                  padding: 4,
+                  justifyContent: "center",
+                  borderRadius: 6,
+                  touchAction: "manipulation",
                 }}
               >
-                <Pencil size={18} style={{ cursor: "pointer" }} />
+                <Pencil size={18} />
               </div>
             ) : (
-              <div style={{ width: 18 }} />
+              <div style={{ width: 32 }} />
             )}
           </div>
         )}
