@@ -32,7 +32,7 @@ export default function TaskCategoryAssignPage() {
       });
   }, [taskId]);
 
-  /* ---------- Build children map (VISUAL ONLY for half-tick) ---------- */
+  /* ---------- Build children map (visual only) ---------- */
 
   const childrenMap = useMemo(() => {
     const map: Record<string, string[]> = {};
@@ -49,13 +49,7 @@ export default function TaskCategoryAssignPage() {
     return kids.flatMap((k) => [k, ...getDescendants(k)]);
   };
 
-  // Visual half-tick only (no assignment logic)
-  const isPartiallyChecked = (id: string) => {
-    const all = getDescendants(id);
-    return all.some((x) => checked.includes(x)) && !checked.includes(id);
-  };
-
-  /* ---------- Independent toggle ---------- */
+  /* ---------- Toggle ---------- */
 
   const toggle = async (node: TreeNode) => {
     if (!taskId) return;
@@ -128,59 +122,98 @@ export default function TaskCategoryAssignPage() {
 
       <TreeDisplay
         nodes={nodes}
-        onSelect={(node) => toggle(node)}
-renderActions={(node) => (
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      gap: 6,
-      minHeight: 28,
-    }}
-  >
-    <input
-      type="checkbox"
-      checked={checked.includes(node.id)}
-      ref={(el) => {
-        if (el) el.indeterminate = isPartiallyChecked(node.id);
-      }}
-      onChange={() => toggle(node)}
-      style={{
-        width: 18,
-        height: 18,
-        margin: 0,
-        appearance: "none",
-        WebkitAppearance: "none",
-        border: "1.5px solid #666",
-        borderRadius: 4,
-        display: "grid",
-        placeContent: "center",
-      }}
-    />
+        renderActions={(node) => {
+          const descendants = getDescendants(node.id);
 
-    {node.id !== "__archive__" ? (
-      <div
-        onClick={(e) => {
-          e.stopPropagation();
-          navigate(`/categories/${node.id}`);
-        }}
-        style={{
-          width: 22,
-          height: 22,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-        }}
-      >
-        <Pencil size={14} />
-      </div>
-    ) : (
-      <div style={{ width: 22 }} />
-    )}
-  </div>
-)}
+          const allChildrenChecked =
+            descendants.length > 0 &&
+            descendants.every((x) => checked.includes(x));
 
+          const someChildrenChecked =
+            descendants.some((x) => checked.includes(x));
+
+          const isChecked = checked.includes(node.id);
+          const fullyChecked = isChecked || allChildrenChecked;
+
+          return (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                minHeight: 28,
+              }}
+            >
+              {/* Checkbox */}
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggle(node);
+                }}
+                style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: 4,
+                  border: "1.5px solid #666",
+                  background: fullyChecked ? "#2563eb" : "transparent",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                }}
+              >
+                {/* FULL CHECK */}
+                {fullyChecked && (
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+
+                {/* PARTIAL */}
+                {!fullyChecked && someChildrenChecked && (
+                  <div
+                    style={{
+                      width: 10,
+                      height: 2,
+                      background: "#2563eb",
+                    }}
+                  />
+                )}
+              </div>
+
+              {/* Pencil */}
+              {node.id !== "__archive__" ? (
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/categories/${node.id}`);
+                  }}
+                  style={{
+                    width: 22,
+                    height: 22,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                  }}
+                >
+                  <Pencil size={14} />
+                </div>
+              ) : (
+                <div style={{ width: 22 }} />
+              )}
+            </div>
+          );
+        }}
       />
     </div>
   );
