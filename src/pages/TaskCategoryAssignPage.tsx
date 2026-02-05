@@ -32,7 +32,7 @@ export default function TaskCategoryAssignPage() {
       });
   }, [taskId]);
 
-  /* ---------- Build children map ---------- */
+  /* ---------- Build children map (visual only) ---------- */
 
   const childrenMap = useMemo(() => {
     const map: Record<string, string[]> = {};
@@ -49,46 +49,38 @@ export default function TaskCategoryAssignPage() {
     return kids.flatMap((k) => [k, ...getDescendants(k)]);
   };
 
-  const isFullyChecked = (id: string) => {
-    const all = getDescendants(id);
-    if (!all.length) return checked.includes(id);
-    return all.every((x) => checked.includes(x));
-  };
-
+  // visual half tick only
   const isPartiallyChecked = (id: string) => {
     const all = getDescendants(id);
-    return all.some((x) => checked.includes(x)) && !isFullyChecked(id);
+    return all.some((x) => checked.includes(x)) && !checked.includes(id);
   };
 
-  /* ---------- Toggle ---------- */
+  /* ---------- Independent toggle ---------- */
 
   const toggle = async (node: TreeNode) => {
     if (!taskId) return;
 
-    const descendants = getDescendants(node.id);
-    const ids = descendants.length ? descendants : [node.id];
+    const id = node.id;
+    const shouldCheck = !checked.includes(id);
 
-    const shouldCheck = !isFullyChecked(node.id);
-
-    setChecked((prev) => {
-      const set = new Set(prev);
-      ids.forEach((id) => (shouldCheck ? set.add(id) : set.delete(id)));
-      return Array.from(set);
-    });
+    setChecked((prev) =>
+      shouldCheck ? [...prev, id] : prev.filter((x) => x !== id)
+    );
 
     if (shouldCheck) {
-      await supabase.from("task_category_map").insert(
-        ids.map((id) => ({
+      await supabase.from("task_category_map").upsert(
+        {
           task_id: taskId,
           category_id: id,
-        }))
+        },
+        { onConflict: "task_id,category_id" }
       );
     } else {
       await supabase
         .from("task_category_map")
         .delete()
         .eq("task_id", taskId)
-        .in("category_id", ids);
+        .eq("category_id", id);
     }
   };
 
@@ -137,36 +129,37 @@ export default function TaskCategoryAssignPage() {
       <TreeDisplay
         nodes={nodes}
         onSelect={(node) => toggle(node)}
-renderActions={(node) => (
-  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-    <input
-      type="checkbox"
-      checked={isFullyChecked(node.id)}
-      ref={(el) => {
-        if (el) el.indeterminate = isPartiallyChecked(node.id);
-      }}
-      onChange={() => toggle(node)}
-      style={{
-        transform: "scale(1.4)",
-      }}
-    />
+        renderActions={(node) => (
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <input
+              type="checkbox"
+              checked={checked.includes(node.id)}
+              ref={(el) => {
+                if (el) el.indeterminate = isPartiallyChecked(node.id);
+              }}
+              onChange={() => toggle(node)}
+              style={{ transform: "scale(1.4)" }}
+            />
 
-    {node.id !== "__archive__" ? (
-      <Pencil
-        size={18}
-        style={{ cursor: "pointer" }}
-        onClick={(e) => {
-          e.stopPropagation();
-          navigate(`/categories/${node.id}`);
-        }}
-      />
-    ) : (
-      // spacer to keep alignment
-      <div style={{ width: 18 }} />
-    )}
-  </div>
-)}
-
+            {node.id !== "__archive__" ? (
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/categories/${node.id}`);
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: 4,
+                }}
+              >
+                <Pencil size={18} style={{ cursor: "pointer" }} />
+              </div>
+            ) : (
+              <div style={{ width: 18 }} />
+            )}
+          </div>
+        )}
       />
     </div>
   );

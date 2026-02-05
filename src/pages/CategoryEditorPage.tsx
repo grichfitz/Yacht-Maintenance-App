@@ -13,11 +13,9 @@ export default function CategoryEditorPage() {
 
   const [name, setName] = useState("");
   const [isArchived, setIsArchived] = useState(false);
-  const [saving, setSaving] = useState(false);
-
   const [selectedParentId, setSelectedParentId] = useState<string | null>(null);
 
-  /* Load category */
+  /* ---------- Load category ---------- */
 
   useEffect(() => {
     if (!categoryId) return;
@@ -35,7 +33,7 @@ export default function CategoryEditorPage() {
       });
   }, [categoryId]);
 
-  /* Prevent circular moves */
+  /* ---------- Circular move prevention ---------- */
 
   const childrenMap = useMemo(() => {
     const map: Record<string, string[]> = {};
@@ -57,23 +55,23 @@ export default function CategoryEditorPage() {
     return new Set([categoryId, ...getDescendants(categoryId)]);
   }, [categoryId, childrenMap]);
 
-  /* Save */
+  /* ---------- Save ---------- */
 
   const save = async () => {
     if (!categoryId) return;
-
-    setSaving(true);
 
     const parentToSave =
       selectedParentId === ROOT_ID ? null : selectedParentId;
 
     await supabase
       .from("task_categories")
-      .update({ name, parent_id: parentToSave })
+      .update({
+        name,
+        parent_id: parentToSave,
+      })
       .eq("id", categoryId);
 
-    setSaving(false);
-    window.location.reload();
+    navigate(-1);
   };
 
   const toggleArchive = async () => {
@@ -83,11 +81,11 @@ export default function CategoryEditorPage() {
       .from("task_categories")
       .update({ is_archived: !isArchived })
       .eq("id", categoryId);
-window.location.reload();
 
+    navigate(-1);
   };
 
-  /* Inject virtual Top Level node at bottom */
+  /* ---------- Virtual Top Level ---------- */
 
   const treeWithRoot = useMemo(() => {
     return [
@@ -112,28 +110,26 @@ window.location.reload();
         }}
       >
         <button
-  onClick={() => navigate(-1)}
-  style={{
-    background: "transparent",
-    border: "none",
-    cursor: "pointer",
-    color: "var(--text-primary)",
-  }}
->
-
+          onClick={() => navigate(-1)}
+          style={{
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            color: "var(--text-primary)",
+          }}
+        >
           ← Back
         </button>
 
         <button
-  onClick={() => navigate("/desktop")}
-  style={{
-    background: "transparent",
-    border: "none",
-    cursor: "pointer",
-    color: "var(--text-primary)",
-  }}
->
-
+          onClick={() => navigate("/desktop")}
+          style={{
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            color: "var(--text-primary)",
+          }}
+        >
           Home
         </button>
       </div>
@@ -143,7 +139,11 @@ window.location.reload();
       <div style={{ fontWeight: 600, marginBottom: 8 }}>Category Editor</div>
 
       <label>Name:</label>
-      <input value={name} onChange={(e) => setName(e.target.value)} style={{ marginBottom: 12 }} />
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        style={{ marginBottom: 12 }}
+      />
 
       <hr />
 
@@ -168,6 +168,25 @@ window.location.reload();
         />
       </div>
 
+      {/* Save Button */}
+
+      <div style={{ marginTop: 20 }}>
+        <button
+          onClick={save}
+          style={{
+            width: "100%",
+            padding: "10px",
+            borderRadius: 8,
+            border: "1px solid var(--border-subtle)",
+            background: "transparent",
+            fontWeight: 600,
+            cursor: "pointer",
+            color: "var(--text-primary)",
+          }}
+        >
+          Save
+        </button>
+
       <hr />
 
       <div style={{ marginBottom: 20 }}>
@@ -188,10 +207,6 @@ window.location.reload();
         </button>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
-        <button onClick={save} disabled={saving} style={{ background: "transparent", border: "none" }}>
-          {saving ? "Saving…" : "Save"}
-        </button>
       </div>
     </div>
   );
