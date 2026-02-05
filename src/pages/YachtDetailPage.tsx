@@ -12,57 +12,129 @@ type Yacht = {
 export default function YachtDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [yacht, setYacht] = useState<Yacht | null>(null)
+
+  const [name, setName] = useState("")
+  const [makeModel, setMakeModel] = useState("")
+  const [location, setLocation] = useState("")
 
   useEffect(() => {
     if (!id) return
 
     supabase
       .from("yachts")
-      .select("id, name, make_model, location")
+      .select("name, make_model, location")
       .eq("id", id)
       .single()
       .then(({ data }) => {
-        setYacht(data)
+        if (!data) return
+        setName(data.name)
+        setMakeModel(data.make_model ?? "")
+        setLocation(data.location ?? "")
       })
   }, [id])
 
-  if (!yacht) {
-    return <div className="app-content">Loading…</div>
+  const save = async () => {
+    if (!id) return
+
+    await supabase
+      .from("yachts")
+      .update({
+        name,
+        make_model: makeModel || null,
+        location: location || null,
+      })
+      .eq("id", id)
+
+    navigate(-1)
   }
+
+  if (!id) return null
 
   return (
     <div className="app-content">
-      {/* Back button */}
-      <button
-        onClick={() => navigate(-1)}
+
+      {/* Top Bar (match CategoryEditor) */}
+      <div
         style={{
-          background: "transparent",
-          border: "none",
-          padding: 0,
-          marginBottom: 12,
-          color: "var(--text-primary)",
-          fontSize: 15,
-          cursor: "pointer",
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 6,
+          marginTop: -6,
         }}
       >
-        ← Back
-      </button>
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            color: "var(--text-primary)",
+          }}
+        >
+          ← Back
+        </button>
 
-      {/* Yacht info */}
-      <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>
-        {yacht.name}
+        <button
+          onClick={save}
+          style={{
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            fontWeight: 600,
+            color: "var(--text-primary)",
+          }}
+        >
+          Save
+        </button>
       </div>
 
-      <div style={{ marginBottom: 6 }}>
-        <strong>Make / Model:</strong>{" "}
-        {yacht.make_model || "—"}
+      <hr />
+
+      <div style={{ fontWeight: 600, marginBottom: 8 }}>Yacht Editor</div>
+
+      <label>Name:</label>
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        style={{ marginBottom: 12 }}
+      />
+
+      <label>Make / Model:</label>
+      <input
+        value={makeModel}
+        onChange={(e) => setMakeModel(e.target.value)}
+        style={{ marginBottom: 12 }}
+      />
+
+      <label>Location:</label>
+      <input
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
+        style={{ marginBottom: 12 }}
+      />
+
+      <hr />
+
+      {/* Assigned Groups — subtle pill like Assigned Categories */}
+
+      <div style={{ marginTop: 8 }}>
+        <button
+          onClick={() => navigate(`/yachts/${id}/groups`)}
+          style={{
+            background: "var(--border-subtle)",
+            border: "none",
+            borderRadius: 12,
+            padding: "4px 10px",
+            fontSize: 13,
+            fontWeight: 500,
+            color: "var(--text-primary)",
+            cursor: "pointer",
+          }}
+        >
+          Assigned Groups
+        </button>
       </div>
 
-      <div>
-        <strong>Location:</strong>{" "}
-        {yacht.location || "—"}
-      </div>
     </div>
   )
 }

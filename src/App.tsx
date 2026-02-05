@@ -6,6 +6,8 @@ import AppShell from "./app/AppShell";
 import LoginPage from "./pages/LoginPage";
 import AppRoutes from "./app/routes";
 
+
+
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<any>(null);

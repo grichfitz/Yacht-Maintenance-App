@@ -6,6 +6,9 @@ import TasksApp from "../app/TasksApp"
 import TaskDetailPage from "../pages/TaskDetailPage";
 import TaskCategoryAssignPage from "../pages/TaskCategoryAssignPage";
 import CategoryEditorPage from "../pages/CategoryEditorPage";
+import YachtCategoryAssignPage from "../pages/YachtGroupAssignPage"
+import YachtGroupAssignPage from "../pages/YachtGroupAssignPage"
+
 
 export default function AppRoutes() {
   return (
@@ -18,6 +21,15 @@ export default function AppRoutes() {
       <Route path="/apps/tasks/:taskId" element={<TaskDetailPage />} />
       <Route path="/apps/tasks/:taskId/categories" element={<TaskCategoryAssignPage />} />
       <Route path="/categories/:categoryId" element={<CategoryEditorPage />} />
+      <Route
+  path="/yachts/:yachtId/categories"
+  element={<YachtCategoryAssignPage />}
+/>
+<Route
+  path="/yachts/:yachtId/groups"
+  element={<YachtGroupAssignPage />}
+/>
+
     </Routes>
   );
 }
